@@ -2,12 +2,26 @@
 
 const path = require('path');
 const webpack = require('webpack');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { checkAppEnv } = require('../config/config-utils');
 
 const isProd = process.env.NODE_ENV === 'production';
+const isEnvPreact = checkAppEnv('preact');
 // console.log(';;isProd-sass, ', isProd);
+
+let reactAlias = {};
+if (isEnvPreact) {
+  reactAlias = {
+    ...reactAlias,
+    react: 'preact/compat',
+    'react-dom': 'preact/compat',
+    'react-dom/test-utils': 'preact/test-utils',
+    'react/jsx-runtime': 'preact/jsx-runtime',
+  };
+}
 
 module.exports = {
   module: {
@@ -63,10 +77,21 @@ module.exports = {
       },
     ],
   },
-  plugins: [new CleanWebpackPlugin()],
+  plugins: [
+    new CleanWebpackPlugin(),
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+    }),
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(process.env),
+    }),
+    // new NodePolyfillPlugin({
+    //   excludeAliases: ['console'],
+    // }),
+  ],
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
-    // alias: {},
+    alias: { ...reactAlias },
   },
   experiments: {
     topLevelAwait: true,

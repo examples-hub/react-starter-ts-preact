@@ -10,8 +10,6 @@
 
 ## later
 
-- migrate to hooks
-
 ## test
 
 -[ ] 抖动

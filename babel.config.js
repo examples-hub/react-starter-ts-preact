@@ -1,3 +1,5 @@
+const { checkAppEnv } = require('./config/config-utils');
+
 module.exports = function (api) {
   // 若build依赖于env，就不要再指定api.cache为forever或never了
   // api.cache(true);
@@ -5,25 +7,20 @@ module.exports = function (api) {
   const env = api.env();
   // const isProd = api.env('production');
 
-  function checkAppEnv(env) {
-    return (
-      process.env.REACT_APP_ENV &&
-      process.env.REACT_APP_ENV.toLowerCase().indexOf(env) !== -1
-    );
-  }
-
   // 用在react应用开发调试阶段，会启用@babel/preset-react、react-refresh/babel
-  const isEnvReactFresh = checkAppEnv('reactfresh');
+  const isEnvReactHotReload = checkAppEnv('reacthot');
+  const isEnvPreactHotReload = checkAppEnv('preacthot');
   // 用在react项目打包阶段，会启用@babel/preset-react，而不会启用react-refresh/babel
-  const isEnvReact = checkAppEnv('react');
+  const isEnvReact = checkAppEnv('react') || checkAppEnv('preact');
   console.log(';;process.env.REACT_APP_ENV, ', process.env.REACT_APP_ENV);
-  console.log(';;isEnvReact, ', isEnvReact);
+  console.log(';;isEnvReact/Preact, ', isEnvReact);
 
   // Plugins run before Presets. Plugin ordering is first to last.
   const plugins = [
     ['@babel/plugin-proposal-class-properties', { loose: false }],
     '@babel/proposal-object-rest-spread',
-    isEnvReactFresh && 'react-refresh/babel',
+    isEnvReactHotReload && 'react-refresh/babel',
+    isEnvPreactHotReload && '@prefresh/babel-plugin',
   ].filter(Boolean);
 
   function configModule() {
